@@ -21,7 +21,7 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           docker build -t ghcr.io/${{ github.repository }}/nginx:${{ github.sha }} .
-          docker push ghcr.io/${{ github.repository }}/my-app:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository }}/nginx:${{ github.sha }}
 
       - name: Log out from Docker
         run: docker logout ghcr.io
