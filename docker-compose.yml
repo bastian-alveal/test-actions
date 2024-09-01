@@ -7,3 +7,4 @@ services:
       - "4960:80"
     volumes:
       - ./data:/usr/share/nginx/html
+      
