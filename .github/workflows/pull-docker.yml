@@ -1,0 +1,33 @@
+name: Deploy Docker Image
+
+on:
+  workflow_run:
+    workflows: ["Build and Push Docker Image to GitHub Packages"]  # Nombre del primer workflow
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # Asegúrate de que se ejecute en tu servidor self-hosted
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Se ejecuta solo si el primer workflow fue exitoso
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Pull Docker Image from GitHub Packages
+        run: |
+          docker pull ghcr.io/${{ github.repository }}/nginx:${{ github.sha }}
+
+      - name: Deploy Docker Container
+        run: |
+          # Detén y elimina el contenedor anterior si existe
+          docker rm -f my-nginx-container || true
+
+          # Ejecuta el nuevo contenedor con la imagen recién desplegada
+          docker run -d --name nginx -p 4800:80 ghcr.io/${{ github.repository }}/nginx:${{ github.sha }}
+
+      - name: Clean up unused images
+        run: docker image prune -f
